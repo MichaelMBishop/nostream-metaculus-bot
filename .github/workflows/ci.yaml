@@ -63,6 +63,9 @@ jobs:
     timeout-minutes: 15
     permissions:
       contents: read
+      # The action lists the PR's commits through GITHUB_TOKEN; on a private repo that
+      # read is not covered by contents: read and 403s ("Resource not accessible by integration").
+      pull-requests: read
     steps:
       - uses: actions/checkout@v5
         with:
