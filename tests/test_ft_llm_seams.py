@@ -249,6 +249,7 @@ class TestProductionKwargShapesReachAcompletion:
         assert FORECASTER_LLMS, "roster must be non-empty for this pin to mean anything"
         saw_xhigh_reasoning = False
         saw_verbosity_extra_body = False
+        saw_reasoning_funneled = False
 
         for llm in FORECASTER_LLMS:
             declared = llm.litellm_kwargs
@@ -262,6 +263,7 @@ class TestProductionKwargShapesReachAcompletion:
             assert sent["timeout"] == declared["timeout"]
             if "reasoning" in declared:
                 assert sent["reasoning"] == declared["reasoning"]
+                saw_reasoning_funneled = True
                 if declared["reasoning"] == _PROD_REASONING_XHIGH:
                     saw_xhigh_reasoning = True
             if "extra_body" in declared:
@@ -269,8 +271,20 @@ class TestProductionKwargShapesReachAcompletion:
                 if declared["extra_body"] == _PROD_VERBOSITY_EXTRA_BODY:
                     saw_verbosity_extra_body = True
 
-        assert saw_xhigh_reasoning, "expected a forecaster with reasoning={'effort':'xhigh'} in the roster"
-        assert saw_verbosity_extra_body, "expected a forecaster with extra_body={'verbosity':'high'} in the roster"
+        # TESTING BRANCH ONLY -- do not merge to main. On main these two are hard
+        # assertions that the PRODUCTION reasoning/verbosity shapes are present, which
+        # is what keeps the loop above from going vacuous. The cheap-testing roster
+        # declares neither (low effort, no verbosity), so the non-vacuity pin moves to
+        # "some slot declared a reasoning shape and it was funneled intact" -- the
+        # transparency this test actually exercises. Restore both asserts with the
+        # production roster.
+        assert saw_reasoning_funneled, "expected at least one forecaster to declare a reasoning shape"
+        _restore = (
+            "shape is back on the roster -- restore the original asserts in this test "
+            "rather than keeping the testing-branch relaxation"
+        )
+        assert not saw_xhigh_reasoning, f"the production xhigh reasoning {_restore}"
+        assert not saw_verbosity_extra_body, f"the production verbosity extra_body {_restore}"
 
 
 class TestTemperatureNoneWorkaround:

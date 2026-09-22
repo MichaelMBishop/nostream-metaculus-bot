@@ -117,19 +117,26 @@ FORECASTER_LLMS: list[GeneralLlm] = [
     # max|xhigh|high|medium|low|minimal|none and this model accepts high (bogus
     # values 400). NOTE: "max" is Anthropic-only — OpenAI's ceiling is xhigh and
     # OpenAI rejects max upstream even though OpenRouter's enum validation admits it.
+    # TESTING BRANCH ONLY -- do not merge to main.
+    # gpt-5.6-sol ($2/$10 per 1M) -> gpt-5.6-luna ($0.20/$1.20), the slug already
+    # proven in-pipeline as PARSER_LLM. effort high -> low: this roster is here to
+    # exercise plumbing on a $15 budget, not to produce scoreable forecasts.
     _forecaster_slot(
-        "openrouter/openai/gpt-5.6-sol",
-        reasoning={"effort": "high"},
+        "openrouter/openai/gpt-5.6-luna",
+        reasoning={"effort": "low"},
     ),
     # Anthropic slot. 2026-07-15: enabled:True (provider-default adaptive thinking)
     # -> explicit effort=xhigh. Anthropic also exposes "max" one tier above xhigh —
     # held back deliberately for latency: unbounded adaptive thinking caused silent
     # FORECASTER_SOFT_DEADLINE stalls on the retired opus-4.6 slot, e.g. Q14333 on
     # 2026-05-07.
+    # opus-4.8 ($5/$25) -> claude-haiku-4.5 ($1/$5), the cheapest Anthropic slug
+    # still carrying 64k output, which REASONING_MODEL_CONFIG's max_tokens needs.
+    # verbosity dropped with the model: haiku-4.5 does not list it as a supported
+    # parameter on OpenRouter.
     _forecaster_slot(
-        "openrouter/anthropic/claude-opus-4.8",
-        reasoning={"effort": "xhigh"},
-        extra_body={"verbosity": "high"},
+        "openrouter/anthropic/claude-haiku-4.5",
+        reasoning={"effort": "low"},
     ),
     # Google slot. No explicit reasoning-effort kwarg — gemini-3.1-pro-preview has
     # no xhigh tier and uses provider defaults. PINNED to the personal
@@ -137,7 +144,14 @@ FORECASTER_LLMS: list[GeneralLlm] = [
     # fallback_openrouter (the donated key routes it through a free-tier Google
     # AI Studio BYOK integration with quota 0, so it would 429 there); see the
     # TODO(gemini-3.1-pro-donated) tag pending the Metaculus-side BYOK fix.
-    _forecaster_slot("openrouter/google/gemini-3.1-pro-preview"),
+    # gemini-3.1-pro-preview ($2/$12) -> gemini-3.1-flash-lite ($0.25/$1.50).
+    # The DONATED_KEY_BLOCKED_GOOGLE_MODELS pin keys off the pro slug and so no
+    # longer applies here; immaterial while OAI_ANTH_OPENROUTER_KEY is unset and
+    # every slot bills the personal key anyway.
+    _forecaster_slot(
+        "openrouter/google/gemini-3.1-flash-lite",
+        reasoning={"effort": "low"},
+    ),
 ]
 
 

@@ -143,11 +143,18 @@ jobs:
           GEMINI_USE_DONATED_OPENROUTER_KEY: 'true'
           # Second-pass gap-fill: analyzer identifies gaps in first-pass research,
           # parallel grounded Gemini searches resolve each. Fails soft.
-          GAP_FILL_ENABLED: 'true'
+          # TESTING BRANCH ONLY: off. v1's resolver is the largest single per-question
+          # line at about $0.80 of the measured $2.07-$2.21 (docs/operations.md,
+          # 2026-09-09 cost pass), which is most of a $15 testing budget.
+          GAP_FILL_ENABLED: 'false'
           # Agentic gap-fill v2 (bounded research loop; runs concurrently with
           # v1 when both are on). ON since 2026-07-17 after smoke + blind driver
           # eval + Exa confirmation; v1 stays on for an overlap window.
-          GAP_FILL_V2_ENABLED: 'true'
+          # TESTING BRANCH ONLY: off with v1. Its driver is gpt-5.6-terra ($2/$12
+          # per 1M) over up to GAP_FILL_V2_MAX_TOOL_CALLS=30 calls, and its
+          # gemini-3.8-flash reader needs a GOOGLE_API_KEY that is not set here,
+          # so what it would mostly buy on this budget is driver spend.
+          GAP_FILL_V2_ENABLED: 'false'
           # Probabilistic tools post-processor: deterministic probability math
           # injected into per-forecaster rationales and the stacker's view.
           # Retired (C2): tier-2 scaffold fields no longer demanded in prompts;
