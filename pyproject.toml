@@ -54,13 +54,15 @@ dev = [
     "hypothesis>=6.156.1",
     "statsmodels>=0.14.6",
     "matplotlib>=3.11.0",
-    "numpyro>=0.21.0",
+    # numpyro pulls jaxlib, which ships no macOS x86_64 wheel (JAX dropped Intel Mac in 0.4.39).
+    "numpyro>=0.21.0; sys_platform != 'darwin' or platform_machine != 'x86_64'",
     "arviz>=1.2.0",
     "h5netcdf>=1.8.1",
     "h5py>=3.16.0",
     "pyyaml>=6.0.3",
     "deptry>=0.25.1",
-    "import-linter>=2.13",
+    # import-linter pulls grimp, a Rust extension with no macOS x86_64 wheel.
+    "import-linter>=2.13; sys_platform != 'darwin' or platform_machine != 'x86_64'",
     "pytest-timeout>=2.4.0",
 ]
 
