@@ -2,12 +2,17 @@ name: Forecast on new Minibench questions
 
 on:
   workflow_dispatch:
-  schedule:
-    # Split across multiple cron entries to avoid GitHub Actions silently dropping
-    # */N schedules under runner load. Offsets staggered off the tournament workflow's
-    # :03/:23/:43 to spread runner pickup. Make sure to skip already forecasted questions!
-    - cron: "8 * * * *"  # every hour at :08
-    - cron: "38 * * * *" # every hour at :38
+  # SCHEDULE HELD OFF on this fork. The workflow has to be ENABLED for a manual
+  # workflow_dispatch to be possible, and enabling it would also arm the cron below
+  # off this (default) branch — ~20 paid, publishing runs a day before the operator
+  # has seen a single MiniBench log. Uncomment both crons to go live; that is a
+  # spend decision, not a cleanup.
+  # schedule:
+  #   # Split across multiple cron entries to avoid GitHub Actions silently dropping
+  #   # */N schedules under runner load. Offsets staggered off the tournament workflow's
+  #   # :03/:23/:43 to spread runner pickup. Make sure to skip already forecasted questions!
+  #   - cron: "8 * * * *"  # every hour at :08
+  #   - cron: "38 * * * *" # every hour at :38
 
 # Add concurrency group to prevent parallel runs
 concurrency:

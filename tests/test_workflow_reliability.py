@@ -300,10 +300,13 @@ class TestScheduledBotCadence:
         # Derived from the files, then pinned: the two test workflows are dispatch-only
         # (spending is the operator's choice), and a new cron on one of them would show up
         # here rather than silently starting to publish on a schedule.
+        # run_bot_on_minibench.yaml left this set deliberately on this fork: its cron is
+        # commented out so the workflow can be ENABLED for manual dispatch (which needs an
+        # enabled workflow) without arming ~20 paid, publishing runs a day. Put it back in
+        # this list when the schedule is uncommented.
         assert sorted(self.scheduled) == [
             ".github/workflows/run_bot_on_mantic.yaml",
             ".github/workflows/run_bot_on_metaculus_cup.yaml",
-            ".github/workflows/run_bot_on_minibench.yaml",
             ".github/workflows/run_bot_on_tournament.yaml",
         ]
 
