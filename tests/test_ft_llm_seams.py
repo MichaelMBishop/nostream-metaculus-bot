@@ -250,6 +250,7 @@ class TestProductionKwargShapesReachAcompletion:
         """
         assert FORECASTER_LLMS, "roster must be non-empty for this pin to mean anything"
         saw_xhigh_reasoning = False
+        saw_reasoning_funneled = False
 
         for llm in FORECASTER_LLMS:
             declared = llm.litellm_kwargs
@@ -263,6 +264,7 @@ class TestProductionKwargShapesReachAcompletion:
             assert sent["timeout"] == declared["timeout"]
             if "reasoning" in declared:
                 assert sent["reasoning"] == declared["reasoning"]
+                saw_reasoning_funneled = True
                 if declared["reasoning"] == _PROD_REASONING_XHIGH:
                     saw_xhigh_reasoning = True
             if "extra_body" in declared:
@@ -270,7 +272,17 @@ class TestProductionKwargShapesReachAcompletion:
             sends_verbosity = "verbosity" in sent or "verbosity" in (sent.get("extra_body") or {})
             assert not ("reasoning" in sent and sends_verbosity), f"{llm.model} sends verbosity beside reasoning"
 
-        assert saw_xhigh_reasoning, "expected a forecaster with reasoning={'effort':'xhigh'} in the roster"
+        # TESTING BRANCH ONLY -- do not merge to main. On main this is a hard assertion
+        # that the PRODUCTION xhigh reasoning shape is present, which is what keeps the
+        # loop above from going vacuous. The cheap-testing roster runs every slot at low
+        # effort, so the non-vacuity pin moves to "some slot declared a reasoning shape
+        # and it was funneled intact" -- the transparency this test actually exercises.
+        # Restore the original assert with the production roster.
+        assert saw_reasoning_funneled, "expected at least one forecaster to declare a reasoning shape"
+        assert not saw_xhigh_reasoning, (
+            "the production xhigh reasoning shape is back on the roster -- restore the original "
+            "assert in this test rather than keeping the testing-branch relaxation"
+        )
 
 
 def test_no_llm_config_sends_verbosity_beside_reasoning() -> None:
