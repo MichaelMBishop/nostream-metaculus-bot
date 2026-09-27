@@ -78,7 +78,7 @@ from litellm.types.utils import Choices, Message, Usage
 
 from metaculus_bot.credit_telemetry import ROLE_METADATA_KEY, reset_donated_key_state_cache
 from metaculus_bot.fallback_openrouter import FallbackOpenRouterLlm
-from metaculus_bot.llm_configs import FORECASTER_LLMS
+from metaculus_bot.llm_configs import FORECASTER_LLMS, STACKER_FALLBACK_LLM, STACKER_LLM
 from metaculus_bot.research.agentic import llm as agentic_llm
 from metaculus_bot.research.agentic.types import LoopConfig
 from metaculus_bot.research.providers import build_native_search_llm
@@ -244,11 +244,12 @@ class TestProductionKwargShapesReachAcompletion:
         Roster-agnostic: iterates the live ``FORECASTER_LLMS`` singletons and asserts
         the funnel is transparent for whatever is configured. Also confirms the
         current production reasoning/verbosity shapes are present on at least one slot
-        so this stays a meaningful pin rather than a vacuous loop.
+        so this stays a meaningful pin rather than a vacuous loop, and that no slot sends
+        ``verbosity`` beside ``reasoning``: on Anthropic, OpenRouter maps both onto one
+        effort knob and verbosity wins, which silently ran the Opus slot at high, not xhigh.
         """
         assert FORECASTER_LLMS, "roster must be non-empty for this pin to mean anything"
         saw_xhigh_reasoning = False
-        saw_verbosity_extra_body = False
         saw_reasoning_funneled = False
 
         for llm in FORECASTER_LLMS:
@@ -268,23 +269,29 @@ class TestProductionKwargShapesReachAcompletion:
                     saw_xhigh_reasoning = True
             if "extra_body" in declared:
                 assert sent["extra_body"] == declared["extra_body"]
-                if declared["extra_body"] == _PROD_VERBOSITY_EXTRA_BODY:
-                    saw_verbosity_extra_body = True
+            sends_verbosity = "verbosity" in sent or "verbosity" in (sent.get("extra_body") or {})
+            assert not ("reasoning" in sent and sends_verbosity), f"{llm.model} sends verbosity beside reasoning"
 
-        # TESTING BRANCH ONLY -- do not merge to main. On main these two are hard
-        # assertions that the PRODUCTION reasoning/verbosity shapes are present, which
-        # is what keeps the loop above from going vacuous. The cheap-testing roster
-        # declares neither (low effort, no verbosity), so the non-vacuity pin moves to
-        # "some slot declared a reasoning shape and it was funneled intact" -- the
-        # transparency this test actually exercises. Restore both asserts with the
-        # production roster.
+        # TESTING BRANCH ONLY -- do not merge to main. On main this is a hard assertion
+        # that the PRODUCTION xhigh reasoning shape is present, which is what keeps the
+        # loop above from going vacuous. The cheap-testing roster runs every slot at low
+        # effort, so the non-vacuity pin moves to "some slot declared a reasoning shape
+        # and it was funneled intact" -- the transparency this test actually exercises.
+        # Restore the original assert with the production roster.
         assert saw_reasoning_funneled, "expected at least one forecaster to declare a reasoning shape"
-        _restore = (
-            "shape is back on the roster -- restore the original asserts in this test "
-            "rather than keeping the testing-branch relaxation"
+        assert not saw_xhigh_reasoning, (
+            "the production xhigh reasoning shape is back on the roster -- restore the original "
+            "assert in this test rather than keeping the testing-branch relaxation"
         )
-        assert not saw_xhigh_reasoning, f"the production xhigh reasoning {_restore}"
-        assert not saw_verbosity_extra_body, f"the production verbosity extra_body {_restore}"
+
+
+def test_no_llm_config_sends_verbosity_beside_reasoning() -> None:
+    """OpenRouter maps both ``verbosity`` and ``reasoning.effort`` onto Anthropic's single
+    ``output_config.effort`` and verbosity wins, so sending both silently overrides the declared effort."""
+    for llm in [*FORECASTER_LLMS, STACKER_LLM, STACKER_FALLBACK_LLM]:
+        declared = llm.litellm_kwargs
+        sends_verbosity = "verbosity" in declared or "verbosity" in (declared.get("extra_body") or {})
+        assert not ("reasoning" in declared and sends_verbosity), f"{llm.model} sends verbosity beside reasoning"
 
 
 class TestTemperatureNoneWorkaround:
