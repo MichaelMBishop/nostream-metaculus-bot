@@ -151,7 +151,9 @@ jobs:
           # Agentic gap-fill v2 (bounded research loop; runs concurrently with
           # v1 when both are on). ON since 2026-07-17 after smoke + blind driver
           # eval + Exa confirmation; v1 stays on for an overlap window.
-          GAP_FILL_V2_ENABLED: 'true'
+          # FORK: off 2026-09-28 to save spend while credits are short. No Exa key for its
+          # search_web tool; its driver alone was $0.40 of a $1.58 question.
+          GAP_FILL_V2_ENABLED: 'false'
           # Prediction-market snapshot provider: Polymarket + Kalshi + Manifold.
           # Manual workflow_dispatch runs use this for end-to-end testing in prod
           # mode (is_benchmarking=False).
