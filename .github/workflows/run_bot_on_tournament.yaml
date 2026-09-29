@@ -1,14 +1,11 @@
 name: Forecast on new AI tournament questions
 
 on:
+  # FORK: dispatch-only. cron-job.org job 8530187 (scripts/fork_dispatch_setup.py) fires this
+  # at :02/:32, just after questions release at :00/:30. GitHub's own :03/:23/:43 crons were
+  # removed 2026-09-28: they delivered sporadically and every idle run bills 2 Actions minutes
+  # on this private repo. If the dispatcher job or its PAT dies, nothing triggers this workflow.
   workflow_dispatch:
-  schedule:
-    # Split across multiple cron entries to avoid GitHub Actions silently dropping
-    # */N schedules under runner load. Off-the-hour offsets dodge the :00 burst.
-    # Make sure to skip already forecasted questions!
-    - cron: "3 * * * *"  # every hour at :03
-    - cron: "23 * * * *" # every hour at :23
-    - cron: "43 * * * *" # every hour at :43
 
 # Add concurrency group to prevent parallel runs
 concurrency:

@@ -303,11 +303,11 @@ class TestScheduledBotCadence:
         # run_bot_on_minibench.yaml left this set deliberately on this fork: its cron is
         # commented out so the workflow can be ENABLED for manual dispatch (which needs an
         # enabled workflow) without arming ~20 paid, publishing runs a day. Put it back in
-        # this list when the schedule is uncommented.
+        # this list when the schedule is uncommented. run_bot_on_tournament.yaml left it too:
+        # the fork's cron-job.org dispatcher is its only trigger (Actions minutes, private repo).
         assert sorted(self.scheduled) == [
             ".github/workflows/run_bot_on_mantic.yaml",
             ".github/workflows/run_bot_on_metaculus_cup.yaml",
-            ".github/workflows/run_bot_on_tournament.yaml",
         ]
 
     def test_every_scheduled_bot_workflow_is_hourly_and_off_the_hour(self) -> None:
