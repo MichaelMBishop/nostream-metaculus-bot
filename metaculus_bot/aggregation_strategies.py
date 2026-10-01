@@ -7,6 +7,7 @@ from forecasting_tools.data_models.multiple_choice_report import PredictedOption
 from forecasting_tools.data_models.numeric_report import NumericDistribution
 from forecasting_tools.data_models.questions import NumericQuestion
 
+from metaculus_bot.fork_aggregation import aggregate_binary_blend, aggregate_numeric_blend, blend_values
 from metaculus_bot.mc_processing import clamp_and_renormalize_probs
 from metaculus_bot.numeric.utils import aggregate_binary_mean, aggregate_numeric
 
@@ -18,6 +19,7 @@ class AggregationStrategy(Enum):
     MEDIAN = "median"
     STACKING = "stacking"
     CONDITIONAL_STACKING = "conditional_stacking"
+    BLEND = "blend"  # fork-only: metaculus_bot/fork_aggregation.py
     # Future candidates: a geometric mean and a trimmed mean.
 
 
@@ -88,6 +90,8 @@ def combine_binary_predictions(
         return aggregate_binary_mean(list(predictions))
     if strategy == AggregationStrategy.MEDIAN:
         return aggregate_binary_median(list(predictions))
+    if strategy == AggregationStrategy.BLEND:
+        return aggregate_binary_blend(list(predictions))
     raise ValueError(f"Unsupported binary aggregation strategy: {strategy}")
 
 
@@ -100,6 +104,8 @@ def combine_multiple_choice_predictions(
         return aggregate_multiple_choice_mean(predictions)
     if strategy == AggregationStrategy.MEDIAN:
         return aggregate_multiple_choice_median(predictions)
+    if strategy == AggregationStrategy.BLEND:
+        return _aggregate_mc_options(predictions, blend_values)
     raise ValueError(f"Unsupported multiple-choice aggregation strategy: {strategy}")
 
 
@@ -111,4 +117,6 @@ def combine_numeric_predictions(
     """Combine numeric distributions according to the requested strategy."""
     if strategy in (AggregationStrategy.MEAN, AggregationStrategy.MEDIAN):
         return aggregate_numeric(predictions, question, strategy.value)
+    if strategy == AggregationStrategy.BLEND:
+        return aggregate_numeric_blend(predictions, question)
     raise ValueError(f"Unsupported numeric aggregation strategy: {strategy}")
