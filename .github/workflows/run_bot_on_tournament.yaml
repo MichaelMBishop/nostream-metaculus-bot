@@ -177,6 +177,8 @@ jobs:
           NUMERIC_STACKING_ENABLED: 'false'
           BINARY_STACKING_ENABLED: 'false'
           MC_STACKING_ENABLED: 'false'
+          # Fork-only: publish 0.7*median + 0.3*mean instead of the median (metaculus_bot/fork_aggregation.py).
+          FORK_BLEND_AGGREGATION_ENABLED: 'true'
           # Suppress openai-agents trace-export background thread (unused).
           OPENAI_AGENTS_DISABLE_TRACING: 'true'
           # Persist research outputs as JSONL for offline backtest replay.

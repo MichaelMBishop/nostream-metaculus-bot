@@ -35,6 +35,7 @@ from metaculus_bot.aggregation_strategies import (
 )
 from metaculus_bot.constants import STACKER_FALLBACK_SOFT_DEADLINE, STACKER_SOFT_DEADLINE
 from metaculus_bot.exceptions import UnitMismatchError
+from metaculus_bot.fork_aggregation import blend_aggregation_enabled
 from metaculus_bot.llm_configs import STACKER_FALLBACK_LLM
 from metaculus_bot.member_forecast import (
     MEMBER_FORECAST_ROLE_STACKER,
@@ -511,6 +512,9 @@ class AggregationPipeline:
         """
         if isinstance(question, (NumericQuestion, DateQuestion)) and elicit_per_bin(numeric_view(question)):
             return AggregationStrategy.MEAN
+        # Fork-only: every median path passes through here, so this one line swaps it for the blend.
+        if strategy == AggregationStrategy.MEDIAN and blend_aggregation_enabled():
+            return AggregationStrategy.BLEND
         return strategy
 
     def _record_numeric_combine_method(self, question: MetaculusQuestion, method: str) -> None:
