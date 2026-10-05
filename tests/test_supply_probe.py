@@ -711,8 +711,7 @@ class TestMain:
 
     def _run(self, monkeypatch, *, extra_argv=()) -> None:
         posts = {
-            # main() reads the real clock, so the open question's schedule must stay in the future.
-            "open": [_post(701, _question(71, scheduled="2099-01-01T00:00:00Z", forecast=True))],
+            "open": [_post(701, _question(71, forecast=True))],
             "closed": [
                 _post(
                     702,
