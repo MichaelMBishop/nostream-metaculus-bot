@@ -222,8 +222,11 @@ class TestRunBotCapRespectsTheBotsOwnContract:
         # The bot workflows are near-identical by design, and drift is how the unsafe cap
         # hid: test_bot_basic sat at 60 while the other four sat at 300, so the one file
         # whose cap was BELOW the bot's own contract looked like the conservative one.
+        # FORK: report_status is excluded because the tournament workflow drops it (FORK.md).
         caps = {
-            rel_path: sorted({job["timeout-minutes"] for job in _workflow(rel_path)["jobs"].values()})
+            rel_path: sorted(
+                {job["timeout-minutes"] for name, job in _workflow(rel_path)["jobs"].items() if name != "report_status"}
+            )
             for rel_path in _BOT_WORKFLOWS
         }
         distinct = {tuple(value) for value in caps.values()}

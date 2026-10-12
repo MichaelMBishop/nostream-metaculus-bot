@@ -8,6 +8,8 @@ import pytest
 import yaml
 
 WORKFLOWS = sorted((Path(__file__).resolve().parents[1] / ".github/workflows").glob("*bot*.yaml"))
+# FORK: the tournament workflow drops report_status to save Actions minutes (FORK.md).
+FORK_NO_REPORT_STATUS = {"run_bot_on_tournament.yaml"}
 
 
 @pytest.mark.parametrize("path", WORKFLOWS, ids=lambda path: path.name)
@@ -31,6 +33,9 @@ def test_forecast_failure_remains_visible_and_summary_always_runs(path: Path) ->
     assert forecast["steps"].index(summary) > next(
         index for index, step in enumerate(forecast["steps"]) if step.get("name") == "Upload research outputs"
     )
+    if path.name in FORK_NO_REPORT_STATUS:
+        assert "report_status" not in jobs
+        return
     report = jobs["report_status"]
     assert report["needs"] == "forecast_job"
     assert report["if"] == "always()"
