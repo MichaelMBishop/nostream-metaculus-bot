@@ -223,22 +223,6 @@ jobs:
           BOT_STEP_OUTCOME: ${{ steps.run_bot.outcome }}
           PLAYWRIGHT_STEP_OUTCOME: ${{ steps.playwright_install.outcome }}
 
-  report_status:
-    name: ${{ needs.forecast_job.outputs.title || 'Forecast status unknown; check setup or cancellation' }}
-    needs: forecast_job
-    if: always()
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - name: Report forecasting result
-        timeout-minutes: 1
-        env:
-          FORECAST_RESULT: ${{ needs.forecast_job.result }}
-          STATUS_TITLE: ${{ needs.forecast_job.outputs.title || 'Forecast status unknown; check setup or cancellation' }}
-        run: |
-          printf '%s\n' "$STATUS_TITLE" >> "$GITHUB_STEP_SUMMARY"
-          printf 'Forecasting job: %s\n' "$FORECAST_RESULT" >> "$GITHUB_STEP_SUMMARY"
-          if [ "$FORECAST_RESULT" != "success" ]; then
-            echo "::error title=Forecasting run failed::See the forecasting job summary for source, model, and publication evidence."
-            exit 1
-          fi
+  # FORK: upstream's report_status job is dropped here. It only renames a second job after the status
+  # title for GitHub's notification, and on this private repo each extra job bills a whole minute per
+  # dispatch (~1,400 min/month). The run_summary step above still writes the summary and annotations.

@@ -15,6 +15,7 @@ changes, and what to check when syncing.
 | GitHub's own cron dropped from the tournament workflow | `run_bot_on_tournament.yaml`, `tests/test_workflow_reliability.py` | #7 |
 | Supply-probe test date fix; pyjwt, urllib3 and virtualenv bumps (drop if upstream fixes the same) | `tests/test_supply_probe.py`, `uv.lock` | #8 |
 | Blend aggregation in place of the median | see below | #9 |
+| `report_status` job dropped from the tournament workflow (saves ~1,400 Actions min/month) | `run_bot_on_tournament.yaml`, `tests/test_forecast_alert_workflows.py` | #14 |
 
 ## Blend aggregation
 
@@ -36,8 +37,9 @@ upstream code in two places:
 ## Syncing upstream
 
 1. `git fetch upstream`, branch off `main`, then `git merge upstream/main`.
-2. Expect conflicts in two places:
+2. Expect conflicts in three places:
    - the `GAP_FILL_V2_ENABLED` lines in the workflows;
+   - the tail of `run_bot_on_tournament.yaml`, if upstream edits its `report_status` job. Keep it deleted;
    - occasionally the two blend hooks above. Upstream edits `aggregation_pipeline.py` often, usually
      inside large refactors.
 3. Run the free gates. `tests/test_fork_aggregation.py` fails if a merge drops the hook, routes a
